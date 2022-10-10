@@ -1,41 +1,58 @@
 {
-  "name": "@lc-cn/ts-dev-template",
+  "name": "onebot-client",
   "version": "1.0.0",
   "description": "ts开发环境配置",
-  "main": "lib/index.js",
+  "main": "./lib/index.js",
+  "module": "./lib/index.esm.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
-    "start": "node .",
-    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
-    "dev": "ts-node-dev -r tsconfig-paths/register ./src/index.ts",
-    "pub": "npm publish --access public",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rimraf ./lib",
+    "build": "npm run clean && npm run build:package && npm run build:package:dts",
+    "build:package": "rollup -c build/rollup.config.ts",
+    "build:package:dts": "rollup -c build/rollup.config.dts.ts",
+    "dev": "cd example && npm run dev",
+    "pub": "npm publish --access public"
   },
+  "workspaces": [
+    "example"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lc-cn/ts-dev-template.git"
+    "url": "git+https://github.com/lc-cn/onebot-client.git"
   },
   "keywords": [
-    "ts",
-    "dev",
-    "template"
+    "onebot",
+    "cqhttp",
+    "oicq",
+    "icqq"
   ],
+  "files": [
+    "lib"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/index.esm.js",
+      "require": "./lib/index.js"
+    },
+    "./*": "./*"
+  },
   "author": "凉菜",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lc-cn/ts-dev-template/issues"
+    "url": "https://github.com/lc-cn/onebot-client/issues"
   },
-  "homepage": "https://github.com/lc-cn/ts-dev-template#readme",
+  "homepage": "https://github.com/lc-cn/onebot-client#readme",
   "devDependencies": {
-    "@types/node": "latest",
-    "ts-node-dev": "latest",
-    "tsc-alias": "latest",
-    "tsconfig-paths": "latest",
-    "typescript": "latest"
+    "@rollup/plugin-alias": "^3.1.9",
+    "@rollup/plugin-node-resolve": "^14.1.0",
+    "@types/node": "^18.7.19",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.79.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.34.0",
+    "typescript": "^4.8.3"
   },
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "/lib/**/LICENSE"
-  ],
-  "dependencies": {}
+  "dependencies": {
+    "event-deliver": "^1.0.2"
+  }
 }
