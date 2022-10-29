@@ -4,8 +4,9 @@ import {Gender} from "onebot-client/common";
 import {EventDeliver} from "event-deliver";
 import {
     PrivateMessageEvent,
-    FriendRequestEvent, FriendIncreaseEvent, FriendDecreaseEvent, FriendRecallEvent, FriendPokeEvent
+    FriendRequestEvent, FriendIncreaseEvent, FriendDecreaseEvent, FriendRecallEvent, FriendPokeEvent, MessageRet
 } from "onebot-client/event";
+import {Quotable, Sendable} from "onebot-client/message";
 
 export class User extends Contactable{
     constructor(c:Client,public readonly uid:number) {
@@ -61,6 +62,19 @@ export class Friend extends Contactable{
     }
     static as(this:Client,uid:number){
         return new Friend(this,uid)
+    }
+    delete(){
+        return this.c.link.callApi<MessageRet>('delete_friend',{friend_id:this.user_id})
+    }
+    uploadFile(file:string,name:string){
+        return this.c.link.callApi<MessageRet>('upload_private_file',{
+            user_id:this.user_id,
+            file,
+            name
+        })
+    }
+    sendMsg(message:Sendable,quote?:Quotable){
+        return this.c.link.callApi<MessageRet>('send_friend_msg',{user_id:this.user_id,message,quote})
     }
 }
 export interface Friend{

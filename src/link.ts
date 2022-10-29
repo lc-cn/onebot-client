@@ -14,7 +14,7 @@ export class Link extends EventDeliver{
             const dispose=this.on('data',(data)=>{
                 if(data.echo===echo){
                     dispose()
-                    if(data.status==='success'){
+                    if(data.status==='ok'){
                         resolve(data.data)
                     }else{
                         reject(data.error)

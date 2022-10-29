@@ -7,6 +7,7 @@ import {Friend, FriendInfo, User} from "onebot-client/friend";
 import {EventMap, MessageRet} from "onebot-client/event";
 import {Notice} from "onebot-client/notice";
 import {Request} from "onebot-client/request";
+import {Profile, StrangerInfo, VersionInfo} from "onebot-client/common";
 
 export class Client extends EventDeliver{
     link:Link
@@ -24,16 +25,61 @@ export class Client extends EventDeliver{
     readonly pickMember = Member.as.bind(this)
     /** 创建一个用户对象 */
     readonly pickUser = User.as.bind(this)
+    deleteMsg(message_id:string){
+        return this.link.callApi('delete_msg',{message_id})
+    }
+    getInfo(){
+        return this.link.callApi<{user_id:number,nickname:string}>('get_login_info')
+    }
+    setProfile(profile:Partial<Profile>){
+        return this.link.callApi<void>('set_qq_profile',profile)
+    }
+    getStrangerInfo(user_id:number){
+        return this.link.callApi<StrangerInfo>('get_stranger_info',{user_id})
+    }
+    getFriendList(){
+        return this.link.callApi<FriendInfo[]>('get_friend_list')
+    }
+    getGroupList(){
+        return this.link.callApi<GroupInfo[]>('get_group_list')
+    }
+    getGroupMemberList(group_id:number){
+        return this.link.callApi<MemberInfo[]>('get_group_member_list',{group_id})
+    }
+    getMsg(message_id:string){
+        return this.link.callApi<Omit<Message, 'reply'>>('get_msg',{message_id})
+    }
+    getImage(file:string){
+        return this.link.callApi<{size:number,filename:string,url:string}>('get_image',{file})
+    }
+    getRecord(file:string,out_format:'mp3'|'amr'|'wma'|'m4a'|'spx'|'ogg'|'wav'|'flac'='mp3'){
+        return this.link.callApi<{file:string}>('get_record',{file})
+    }
+    canSendImage(){
+        return this.link.callApi<{yes:boolean}>('can_send_image')
+    }
+    canSendRecord(){
+        return this.link.callApi<{yes:boolean}>('can_send_record')
+    }
+    getVersionInfo(){
+        return this.link.callApi<VersionInfo>('get_version_info')
+    }
+    restartServer(){
+        return this.link.callApi<void>('set_restart')
+    }
+    cleanServerCache(){
+        return this.link.callApi<void>('clean_cache')
+    }
     constructor(public uin:number,options?:Client.Options|string) {
         super();
-        if(!options) options='ws://bots.div.icu'
+        if(!options) options='ws://localhost:8080'
         if(typeof options==="string"){
             options={remote_url:options}
         }
 
         if(!options.remote_url) throw new Error('remote_utl is required')
         this.options=Object.assign({...Client.defaultOptions},options)
-        this.link=new Link(`${this.options.remote_url}/${this.uin}?access_token=${this.options.access_token}`)
+        this.link=new Link(`${this.options.remote_url}/?access_token=${this.options.access_token}`)
     }
     async start(){
         this.link.on('data',(data)=>{
@@ -72,15 +118,15 @@ export class Client extends EventDeliver{
             }
         })
         await this.link.connect()
-        await this.$init()
+        await this.#init()
 
     }
-    private async $init(){
-        const groupList=await this.link.callApi<GroupInfo[]>('get_group_list')
-        const friendList=await this.link.callApi<FriendInfo[]>('get_friend_list')
+    async #init(){
+        const groupList=await this.getGroupList()
+        const friendList=await this.getFriendList()
         for(const groupInfo of groupList){
             this.gl.set(groupInfo.group_id,groupInfo)
-            const groupMemberList=await this.link.callApi<MemberInfo[]>('get_group_member_list',{group_id:groupInfo.group_id})
+            const groupMemberList=await this.getGroupMemberList(groupInfo.group_id)
             const groupMemberMap=new Map<number,MemberInfo>()
             for(const memberInfo of groupMemberList){
                 groupMemberMap.set(memberInfo.user_id,memberInfo)

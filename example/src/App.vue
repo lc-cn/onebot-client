@@ -10,7 +10,7 @@ export default {
     return {}
   },
   async setup(){
-    const client=new Client(717505091,'ws://bots.div.icu')
+    const client=new Client(210723495)
     await client.start()
     // client.sendPrivateMsg(1659488338,'test').then(res=>{
     //   console.log(res)
@@ -18,8 +18,10 @@ export default {
     client.pickFriend(1659488338).on('message',(event)=>{
       console.log(event)
     })
-    client.pickGroup(626459021).pickMember(1659488338).on('message',event=>{
-      console.log(`I'm from group${626459021}:${1659488338}`,event)
+    await client.pickGroup(298381409).sendMsg('我以上线')
+    client.pickGroup(298381409).pickMember(1659488338).on('message',(event)=>{
+      console.log(`I'm from group${298381409}:${1659488338}`,event)
+      event.reply('hello')
     })
   }
 }

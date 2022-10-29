@@ -1,16 +1,18 @@
 import {Contactable} from "onebot-client/contactable";
 import {Client} from "onebot-client/client";
 import {User, UserInfo} from "onebot-client/friend";
-import {Gender, GroupRole} from "onebot-client/common";
+import {Gender, GroupHonorInfo, GroupRole} from "onebot-client/common";
 import {
     GroupAdminEvent,
     GroupInviteEvent,
     GroupMessageEvent, GroupMuteEvent,
     GroupPokeEvent, GroupRecallEvent,
     GroupRequestEvent, GroupTransferEvent, MemberDecreaseEvent,
-    MemberIncreaseEvent
+    MemberIncreaseEvent, MessageRet
 } from "onebot-client/event";
 import {EventDeliver} from "event-deliver";
+import {Quotable, Sendable} from "onebot-client/message";
+import {GFS} from "onebot-client/fileSystem";
 
 const groupCache:WeakMap<GroupInfo,Group>=new WeakMap<GroupInfo, Group>()
 const groupMemberCache:WeakMap<MemberInfo,Member>=new WeakMap<MemberInfo, Member>()
@@ -39,11 +41,11 @@ export interface GroupEventMap extends GroupMessageEventMap,GroupNoticeEventMap,
 export interface MemberEventMap extends GroupEventMap{}
 export class Group extends Contactable{
     public members:Map<number,Member>=new Map<number,Member>()
-    public info:GroupInfo
+    public gfs:GFS
     constructor(c:Client,public readonly group_id:number) {
         super(c);
-        this.info=c.gl.get(this.group_id) as GroupInfo
         groupCache.set(this.info,this)
+        this.gfs=new GFS(this)
         const members=this.c.gml.get(group_id)
         if(members){
             [...members.keys()].forEach(member_id=>{
@@ -51,9 +53,66 @@ export class Group extends Contactable{
             })
         }
     }
+    get info(){
+        return this.c.gl.get(this.group_id) as GroupInfo
+    }
+    set info(info){
+        this.c.gl.set(this.group_id,info)
+    }
+    async getInfo(cache?:boolean){
+        if(cache) return this.info
+        return this.info=await this.client.link.callApi<GroupInfo>('get_group_info',{group_id:this.group_id})
+    }
+    setAvatar(file:string){
+        return this.client.link.callApi<GroupHonorInfo>('set_group_portrait',{group_id:this.group_id,file})
+    }
+    getHonorInfo(type:'talkative'|'performer'|'legend'|'strong_newbie'|'emotion'|'all'){
+        return this.client.link.callApi<GroupHonorInfo>('set_group_kick',{group_id:this.group_id,type})
+    }
     /** 获取一枚群员实例 */
     pickMember(uid: number) {
         return this.c.pickMember(this.group_id, uid)
+    }
+    kickMember(member_id:number,reject_add_request?:boolean){
+        return this.client.link.callApi<void>('set_group_kick',{group_id:this.group_id,user_id:member_id,reject_add_request})
+    }
+    muteMember(member_id:number,duration?:number){
+        return this.client.link.callApi<void>('set_group_ban',{group_id:this.group_id,user_id:member_id,duration})
+    }
+    muteAnonymous(flag:string,duration?:number){
+        return this.client.link.callApi<void>('set_group_anonymous_ban',{group_id:this.group_id,flag,duration})
+    }
+    muteAll(enable?:boolean){
+        return this.client.link.callApi<void>('set_group_whole_ban',{group_id:this.group_id,enable})
+    }
+    setAdmin(member_id:number,enable?:boolean){
+        return this.client.link.callApi<void>('set_group_admin',{group_id:this.group_id,user_id:member_id,enable})
+    }
+    setAnonymous(enable?:boolean){
+        return this.client.link.callApi<void>('set_group_anonymous',{group_id:this.group_id,enable})
+    }
+    setMemberCard(member_id:number,card:string){
+        return this.client.link.callApi<void>('set_group_card',{group_id:this.group_id,user_id:member_id,card})
+    }
+    setName(group_name:string){
+        return this.client.link.callApi<void>('set_group_name',{group_id:this.group_id,group_name})
+    }
+    quit(is_dismiss?:boolean){
+        return this.client.link.callApi<void>('set_group_leave',{group_id:this.group_id,is_dismiss})
+    }
+    setMemberTitle(member_id:number,title:string,duration?:number){
+        return this.client.link.callApi<void>('set_group_special_title',{
+            group_id:this.group_id,
+            user_id:member_id,
+            special_title:title,
+            duration
+        })
+    }
+    sign(){
+        return this.client.link.callApi<void>('send_group_sign',{group_id:this.group_id})
+    }
+    sendMsg(message:Sendable,quote?:Quotable){
+        return this.c.link.callApi<MessageRet>('send_group_msg',{group_id:this.group_id,message,quote})
     }
     static as(this:Client,group_id:number){
         let groupInfo=this.gl.get(group_id)
@@ -117,6 +176,21 @@ export class Member extends User{
         const member=new Member(this,gid,uid)
         groupMemberCache.set(member.info,member)
         return member
+    }
+    kick(reject_add_request?:boolean){
+        return this.group.kickMember(this.user_id,reject_add_request)
+    }
+    mute(duration?:number){
+        return this.group.muteMember(this.user_id,duration)
+    }
+    setAdmin(enable?:boolean){
+        return this.group.setAdmin(this.user_id,enable)
+    }
+    setCard(card:string){
+        return this.group.setMemberCard(this.user_id,card)
+    }
+    setTitle(title:string,duration?:number){
+        return this.group.setMemberTitle(this.user_id,title,duration)
     }
 }
 export interface Group{

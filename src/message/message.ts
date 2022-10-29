@@ -3,6 +3,7 @@ import {MessageElem, Quotable, Sendable} from "onebot-client/message/elements";
 import {GroupMessageEvent, MessageRet, PrivateMessageEvent} from "onebot-client/event";
 import {} from "onebot-client/group";
 import {Gender, GroupRole} from "onebot-client/common";
+import {Contactable} from "onebot-client/contactable";
 
 export function genDmMessageId(uid: number, seq: number, rand: number, time: number, flag = 0) {
     const buf = Buffer.allocUnsafe(17)
@@ -16,7 +17,7 @@ export function genDmMessageId(uid: number, seq: number, rand: number, time: num
 export abstract class Message{
     post_type = "message" as "message"
     message_id = ""
-    constructor(public c:Client,private $json:Record<string, any>) {
+    constructor(public c:Client,$json:Record<string, any>) {
         Object.assign(this,$json)
     }
     static from<T extends keyof MessageEventMap>(this:Client,type:T,message:Record<string, any>):MessageEventMap[T]{
@@ -56,7 +57,12 @@ export abstract class Message{
         return result as MessageEventMap[T]
     }
     toJSON(){
-        return this.$json
+        return Object.fromEntries(Object.keys(this)
+            .filter((key:keyof Message)=>{
+                return typeof this[key] !=='function' && !(this[key] instanceof Contactable)
+            })
+            .map((key:keyof Message)=>[key,this[key]])
+        )
     }
 }
 export class PrivateMessage extends Message{

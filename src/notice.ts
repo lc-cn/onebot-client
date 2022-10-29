@@ -16,7 +16,7 @@ import {
 
 export class Notice<T extends keyof NoticeEventMap,CT extends keyof NoticeEventMap[T]>{
     post_type = "notice" as "notice"
-    constructor(public c:Client,notice_type:T,sub_type:CT,private $json:Record<string, any>) {
+    constructor(public c:Client,notice_type:T,sub_type:CT,$json:Record<string, any>) {
         Object.assign(this,$json)
     }
     static from<T extends keyof NoticeEventMap,CT extends keyof NoticeEventMap[T]>(this:Client,notice_type:T,sub_type:CT,json:Record<string, any>):NoticeEventMap[T][CT]{
