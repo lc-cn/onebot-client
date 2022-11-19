@@ -79,14 +79,14 @@ export class Client extends EventDeliver{
 
         if(!options.remote_url) throw new Error('remote_utl is required')
         this.options=Object.assign({...Client.defaultOptions},options)
-        this.link=new Link(`${this.options.remote_url}/?access_token=${this.options.access_token}`)
+        this.link=new Link(`${this.options.remote_url}?access_token=${this.options.access_token}`)
     }
     async start(){
         this.link.on('data',(data)=>{
             if(data.post_type==="meta_event") return
             const {post_type,sub_type}=data
             switch (post_type){
-                case "message":
+                case "message":{
                     const {message_type,...message}=data
                     const {user_id,group_id}=message
                     const eventName=[post_type,message_type,sub_type]
@@ -94,22 +94,53 @@ export class Client extends EventDeliver{
                         .join('.')
                     const event=Message.from.call(this,message_type,message)
                     if(message_type==='group'){
-                        this.pickGroup(group_id).em(eventName,event)
-                        this.pickGroup(group_id).pickMember(user_id).em(eventName,event)
+                        const sumEventName=eventName.replace('.group','')
+                        this.pickGroup(group_id).em(sumEventName,event)
+                        this.pickGroup(group_id).pickMember(user_id).em(sumEventName,event)
                     }else{
-                        this.pickFriend(user_id).em(eventName,event)
+                        const sumEventName=eventName.replace('.private','')
+                        this.pickFriend(user_id).em(sumEventName,event)
                     }
                     return this.em(eventName,event)
-                case 'notice':
+                }
+                case 'notice':{
                     const {notice_type,...notice}=data
+                    const {user_id,group_id}=notice
+                    const eventName=[post_type,notice_type,sub_type]
+                        .filter(Boolean)
+                        .join('.')
+                    const event=Notice.from.call(this,notice_type,sub_type,notice)
+                    if(notice_type==='group'){
+                        const sumEventName=eventName.replace('.group','')
+                        this.pickGroup(group_id).em(sumEventName,event)
+                        this.pickGroup(group_id).pickMember(user_id).em(sumEventName,event)
+                    }else{
+                        const sumEventName=eventName.replace('.private','')
+                        this.pickFriend(user_id).em(sumEventName,event)
+                    }
                     return this.em([post_type,notice_type,sub_type]
                         .filter(Boolean)
-                        .join('.'),Notice.from.call(this,notice_type,sub_type,notice))
-                case 'request':
+                        .join('.'),event)
+                }
+                case 'request':{
                     const {request_type,...request}=data
+                    const {user_id,group_id}=request
+                    const eventName=[post_type,request_type,sub_type]
+                        .filter(Boolean)
+                        .join('.')
+                    const event=Request.from.call(this,request_type,sub_type,request)
+                    if(request_type==='group'){
+                        const sumEventName=eventName.replace('.group','')
+                        this.pickGroup(group_id).em(sumEventName,event)
+                        this.pickGroup(group_id).pickMember(user_id).em(sumEventName,event)
+                    }else{
+                        const sumEventName=eventName.replace('.private','')
+                        this.pickFriend(user_id).em(sumEventName,event)
+                    }
                     return this.em([post_type,request_type,sub_type]
                         .filter(Boolean)
-                        .join('.'),Request.from.call(this,request_type,sub_type,request))
+                        .join('.'),event)
+                }
                 case 'system':
                     const {system_type,...system}=data
                     return this.em([post_type,system_type,sub_type]

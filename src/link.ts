@@ -1,4 +1,4 @@
-import {EventDeliver} from "event-deliver";
+import EventDeliver from "event-deliver";
 
 export class Link extends EventDeliver{
     private ws?:WebSocket
@@ -14,7 +14,7 @@ export class Link extends EventDeliver{
             const dispose=this.on('data',(data)=>{
                 if(data.echo===echo){
                     dispose()
-                    if(data.status==='ok'){
+                    if(data.status==='success'){
                         resolve(data.data)
                     }else{
                         reject(data.error)

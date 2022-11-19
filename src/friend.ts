@@ -7,6 +7,7 @@ import {
     FriendRequestEvent, FriendIncreaseEvent, FriendDecreaseEvent, FriendRecallEvent, FriendPokeEvent, MessageRet
 } from "onebot-client/event";
 import {Quotable, Sendable} from "onebot-client/message";
+import {Group, GroupInfo} from "onebot-client/group";
 
 export class User extends Contactable{
     constructor(c:Client,public readonly uid:number) {
@@ -53,14 +54,19 @@ export interface FriendRequestEventMap{
 export interface FriendEventMap extends PrivateMessageEventMap,FriendNoticeEventMap,FriendRequestEventMap{
 }
 
+const friendCache:WeakMap<FriendInfo,Friend>=new WeakMap<FriendInfo, Friend>()
 export class Friend extends Contactable{
     public info:FriendInfo
     constructor(c:Client,uid:number) {
         super(c);
         this.user_id=uid
         this.info=c.fl.get(this.user_id) as FriendInfo
+        friendCache.set(this.info,this)
     }
     static as(this:Client,uid:number){
+        const friendInfo=this.fl.get(uid)
+        if(friendInfo && friendCache.get(friendInfo)) return friendCache.get(friendInfo) as Friend
+        if(!friendInfo) throw new Error('未找到好友：'+uid)
         return new Friend(this,uid)
     }
     delete(){
@@ -74,7 +80,7 @@ export class Friend extends Contactable{
         })
     }
     sendMsg(message:Sendable,quote?:Quotable){
-        return this.c.link.callApi<MessageRet>('send_friend_msg',{user_id:this.user_id,message,quote})
+        return this.c.link.callApi<MessageRet>('send_private_msg',{user_id:this.user_id,message,quote})
     }
 }
 export interface Friend{

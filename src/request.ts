@@ -1,5 +1,7 @@
 import {Client} from "onebot-client/client";
 import {FriendRequestEvent, GroupInviteEvent, GroupRequestEvent} from "onebot-client/event";
+import {Friend} from "onebot-client/friend";
+import {json} from "stream/consumers";
 
 export class Request<T extends keyof RequestEventMap,CT extends keyof RequestEventMap[T]>{
     post_type = "request" as "request"

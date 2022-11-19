@@ -5,15 +5,6 @@ import {} from "onebot-client/group";
 import {Gender, GroupRole} from "onebot-client/common";
 import {Contactable} from "onebot-client/contactable";
 
-export function genDmMessageId(uid: number, seq: number, rand: number, time: number, flag = 0) {
-    const buf = Buffer.allocUnsafe(17)
-    buf.writeUInt32BE(uid)
-    buf.writeInt32BE(seq & 0xffffffff, 4)
-    buf.writeInt32BE(rand & 0xffffffff, 8)
-    buf.writeUInt32BE(time, 12)
-    buf.writeUInt8(flag, 16) //接收为0 发送为1
-    return buf.toString("base64")
-}
 export abstract class Message{
     post_type = "message" as "message"
     message_id = ""
@@ -77,10 +68,6 @@ export class PrivateMessage extends Message{
     }
     constructor(c:Client,message:Record<string, any>) {
         super(c,message);
-        let opposite = this.from_id, flag = 0
-        if (this.from_id === c.uin)
-            opposite = this.to_id, flag = 1
-        this.message_id = genDmMessageId(opposite, this.seq, this.rand, this.time, flag)
     }
 }
 export class GroupMessage extends Message{

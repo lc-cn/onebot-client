@@ -117,6 +117,7 @@ export class Group extends Contactable{
     static as(this:Client,group_id:number){
         let groupInfo=this.gl.get(group_id)
         if(groupInfo && groupCache.get(groupInfo)) return groupCache.get(groupInfo) as Group
+        if(!groupInfo) throw new Error('未找到群：'+group_id)
         const group=new Group(this,group_id)
         groupCache.set(group.info,group)
         return group
@@ -173,6 +174,7 @@ export class Member extends User{
     static as(this:Client,gid:number,uid:number){
         const memberInfo=this.gml.get(gid)?.get(uid)
         if(memberInfo && groupMemberCache.get(memberInfo)) return groupMemberCache.get(memberInfo) as Member
+        if(!memberInfo) throw new Error('未找到群成员：'+uid)
         const member=new Member(this,gid,uid)
         groupMemberCache.set(member.info,member)
         return member

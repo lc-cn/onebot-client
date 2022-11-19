@@ -1,7 +1,7 @@
 {
   "name": "onebot-client",
-  "version": "1.0.0",
-  "description": "ts开发环境配置",
+  "version": "1.0.1",
+  "description": "onebot client SDK",
   "main": "./lib/index.js",
   "module": "./lib/index.esm.js",
   "types": "./lib/index.d.ts",
