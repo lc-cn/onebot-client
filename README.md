@@ -56,4 +56,4 @@ client.pickGroup(42342342).on('notice.increase') // fix group(42342342) increase
 client.pickGroup(42342342).on('request.add') // fix group(42342342) add request
 ```
 ## more 
-[TypeDocs](/docs)
+[TypeDocs](https://lc-cn.github.io/onebot-client/)
