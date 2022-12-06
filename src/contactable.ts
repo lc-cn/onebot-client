@@ -1,5 +1,5 @@
 import {EventDeliver} from "event-deliver";
-import {Client} from "onebot-client/client";
+import {Client} from "./client";
 
 export class Contactable extends EventDeliver{
     protected user_id?:number

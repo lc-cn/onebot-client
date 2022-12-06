@@ -1,7 +1,7 @@
-import {Contactable} from "onebot-client/contactable";
-import {Client} from "onebot-client/client";
-import {User, UserInfo} from "onebot-client/friend";
-import {Gender, GroupHonorInfo, GroupRole} from "onebot-client/common";
+import {Contactable} from "./contactable";
+import {Client} from "./client";
+import {User, UserInfo} from "./friend";
+import {Gender, GroupHonorInfo, GroupRole} from "./common";
 import {
     GroupAdminEvent,
     GroupInviteEvent,
@@ -9,10 +9,10 @@ import {
     GroupPokeEvent, GroupRecallEvent,
     GroupRequestEvent, GroupTransferEvent, MemberDecreaseEvent,
     MemberIncreaseEvent, MessageRet
-} from "onebot-client/event";
+} from "./event";
 import {EventDeliver} from "event-deliver";
-import {Quotable, Sendable} from "onebot-client/message";
-import {GFS} from "onebot-client/fileSystem";
+import {Quotable, Sendable} from "./message";
+import {GFS} from "./fileSystem";
 
 const groupCache:WeakMap<GroupInfo,Group>=new WeakMap<GroupInfo, Group>()
 const groupMemberCache:WeakMap<MemberInfo,Member>=new WeakMap<MemberInfo, Member>()

@@ -1,13 +1,13 @@
 import {EventDeliver} from 'event-deliver'
-import {Link} from "onebot-client/link";
-import {Message} from "onebot-client/message/message";
-import {Quotable, Sendable} from "onebot-client/message";
-import {Group,Member,MemberInfo, GroupInfo} from "onebot-client/group";
-import {Friend, FriendInfo, User} from "onebot-client/friend";
-import {EventMap, MessageRet} from "onebot-client/event";
-import {Notice} from "onebot-client/notice";
-import {Request} from "onebot-client/request";
-import {Profile, StrangerInfo, VersionInfo} from "onebot-client/common";
+import {Link} from "./link";
+import {Message} from "./message/message";
+import {Quotable, Sendable} from "./message";
+import {Group,Member,MemberInfo, GroupInfo} from "./group";
+import {Friend, FriendInfo, User} from "./friend";
+import {EventMap, MessageRet} from "./event";
+import {Notice} from "./notice";
+import {Request} from "./request";
+import {Profile, StrangerInfo, VersionInfo} from "./common";
 
 export class Client extends EventDeliver{
     link:Link

@@ -1,9 +1,9 @@
-import {Client} from "onebot-client/client";
-import {MessageElem, Quotable, Sendable} from "onebot-client/message/elements";
-import {GroupMessageEvent, MessageRet, PrivateMessageEvent} from "onebot-client/event";
-import {} from "onebot-client/group";
-import {Gender, GroupRole} from "onebot-client/common";
-import {Contactable} from "onebot-client/contactable";
+import {Client} from "../client";
+import {MessageElem, Quotable, Sendable} from "./elements";
+import {GroupMessageEvent, MessageRet, PrivateMessageEvent} from "../event";
+import {} from "../group";
+import {Gender, GroupRole} from "../common";
+import {Contactable} from "../contactable";
 
 export abstract class Message{
     post_type = "message" as "message"

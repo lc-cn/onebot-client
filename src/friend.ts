@@ -1,13 +1,12 @@
-import {Contactable} from "onebot-client/contactable";
-import {Client} from "onebot-client/client";
-import {Gender} from "onebot-client/common";
+import {Contactable} from "./contactable";
+import {Client} from "./client";
+import {Gender} from "./common";
 import {EventDeliver} from "event-deliver";
 import {
     PrivateMessageEvent,
     FriendRequestEvent, FriendIncreaseEvent, FriendDecreaseEvent, FriendRecallEvent, FriendPokeEvent, MessageRet
-} from "onebot-client/event";
-import {Quotable, Sendable} from "onebot-client/message";
-import {Group, GroupInfo} from "onebot-client/group";
+} from "./event";
+import {Quotable, Sendable} from "./message";
 
 export class User extends Contactable{
     constructor(c:Client,public readonly uid:number) {

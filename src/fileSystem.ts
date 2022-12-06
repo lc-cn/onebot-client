@@ -1,4 +1,4 @@
-import {Group} from "onebot-client/group";
+import {Group} from "./group";
 
 export class GFS{
     public info:GFS.Info|null=null

@@ -1,4 +1,4 @@
-import {Client} from "onebot-client/client";
+import {Client} from "./client";
 import {
     FriendDecreaseEvent,
     FriendIncreaseEvent,
@@ -12,10 +12,10 @@ import {
     GroupTransferEvent,
     MemberDecreaseEvent,
     MemberIncreaseEvent
-} from "onebot-client/event";
-import {Friend} from "onebot-client/friend";
+} from "./event";
+import {Friend} from "./friend";
 import {json} from "stream/consumers";
-import {Group} from "onebot-client/group";
+import {Group} from "./group";
 
 export class Notice<T extends keyof NoticeEventMap,CT extends keyof NoticeEventMap[T]>{
     post_type = "notice" as "notice"

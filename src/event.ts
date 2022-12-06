@@ -1,5 +1,5 @@
-import {GroupMessage, PrivateMessage, Sendable} from "onebot-client/message";
-import {Friend, FriendNoticeEventMap, FriendRequestEventMap, PrivateMessageEventMap} from "onebot-client/friend";
+import {GroupMessage, PrivateMessage, Sendable} from "./message";
+import {Friend, FriendNoticeEventMap, FriendRequestEventMap, PrivateMessageEventMap} from "./friend";
 import {
     Group,
     GroupMessageEventMap,
@@ -7,8 +7,8 @@ import {
     GroupRequestEventMap,
     Member,
     MemberInfo
-} from "onebot-client/group";
-import {Gender, GroupRole, PushStrToNextStr} from "onebot-client/common";
+} from "./group";
+import {Gender, GroupRole, PushStrToNextStr} from "./common";
 import {EventDeliver} from "event-deliver";
 
 /** 发消息的返回值 */
