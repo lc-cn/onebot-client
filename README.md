@@ -12,7 +12,7 @@ const client=new Client(147258369,{
     remote_url:'ws://localhost:6700',// 你onebot启动时设置的websocket连接地址
     access_token:'',//鉴权token
 })
-clent.start.then(()=>{
+client.start().then(()=>{
     // do sth
 })
 ```
