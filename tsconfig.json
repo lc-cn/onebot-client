@@ -8,8 +8,7 @@
     "declaration": true,
     "esModuleInterop":true,
     "lib": [
-      "es6",
-      "dom"
+      "es6"
     ],
     "paths": {
       "onebot-client/*": ["./src/*"],

@@ -20,12 +20,13 @@ export class GroupRequest<T extends keyof RequestEventMap['group']> extends Requ
     }
     // 快捷处理群邀请/添加请求
     approve(agree?:boolean,reason?:string){
-        return this.c.link.callApi<void>('set_group_add_request',{
-            flag:this.flag,
-            sub_type:this.sub_type,
-            approve:agree,
-            reason
-        })
+        // 暂不支持
+        // return this.c.link.callApi('set_group_add_request',{
+        //     flag:this.flag,
+        //     sub_type:this.sub_type as any,
+        //     approve:agree,
+        //     reason
+        // })
     }
 }
 export class FriendRequest<T extends keyof RequestEventMap['friend']> extends Request<'friend', T>{
@@ -34,11 +35,12 @@ export class FriendRequest<T extends keyof RequestEventMap['friend']> extends Re
     }
     // 快捷处理好友请求
     approve(agree?:boolean,remark?:string){
-        return this.c.link.callApi<void>('set_friend_add_request',{
-            flag:this.flag,
-            approve:agree,
-            remark
-        })
+        // 暂不支持
+        // return this.c.link.callApi('set_friend_add_request',{
+        //     flag:this.flag,
+        //     approve:agree,
+        //     remark
+        // })
     }
 }
 interface RequestEventMap{

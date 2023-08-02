@@ -1,8 +1,15 @@
 # onebot-client
 oneBot 客户端SDK
 ## Install
+
+### 1 使用包管理器
 ```shell
 npm i onebot-client
+```
+### 2 使用cdn链接
+```html
+
+<script src="https://cdn.jsdelivr.net/npm/onebot-client@1.1.0/lib/index.umd.js"></script>
 ```
 ## Usage
 ### 1. linkServer

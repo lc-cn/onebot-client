@@ -188,25 +188,55 @@ export interface GroupTransferEvent extends GroupNoticeEvent {
     user_id: number
 }
 export type MessageEventMap={
-    'message'(event:PrivateMessageEvent|GroupMessageEvent):EventDeliver.Dispose
+    'message'(event:PrivateMessageEvent|GroupMessageEvent):void
 } & {
     [P in keyof PrivateMessageEventMap as PushStrToNextStr<'private',P>]:PrivateMessageEventMap[P]
 } & {
     [P in keyof GroupMessageEventMap as PushStrToNextStr<'group',P>]:GroupMessageEventMap[P]
 }
 export type NoticeEventMap={
-    'notice'(event:Parameters<MergeEventMap['notice.friend']> | Parameters<MergeEventMap['notice.group']> ):EventDeliver.Dispose
+    'notice'(event:Parameters<MergeEventMap['notice.friend']> | Parameters<MergeEventMap['notice.group']> ):void
 } & {
     [P in keyof FriendNoticeEventMap as PushStrToNextStr<'friend',P>]:FriendNoticeEventMap[P]
 } & {
     [P in keyof GroupNoticeEventMap as PushStrToNextStr<'group',P>]:GroupNoticeEventMap[P]
 }
 export type RequestEventMap={
-    'request'(event:Parameters<MergeEventMap['request.friend']> | Parameters<MergeEventMap['request.group']> ):EventDeliver.Dispose
+    'request'(event:Parameters<MergeEventMap['request.friend']> | Parameters<MergeEventMap['request.group']> ):void
 } & {
     [P in keyof FriendRequestEventMap as PushStrToNextStr<'friend',P>]:FriendRequestEventMap[P]
 } & {
     [P in keyof GroupRequestEventMap as PushStrToNextStr<'group',P>]:GroupRequestEventMap[P]
 }
 export type MergeEventMap= MessageEventMap & NoticeEventMap & RequestEventMap
-export interface EventMap extends MergeEventMap{}
+/** 登录时可能出现的错误，不在列的都属于未知错误，暂时无法解决 */
+export enum LoginErrorCode {
+    /** 密码错误 */
+    WrongPassword = 1,
+    /** 账号被冻结 */
+    AccountFrozen = 40,
+    /** 发短信太频繁 */
+    TooManySms = 162,
+    /** 短信验证码错误 */
+    WrongSmsCode = 163,
+    /** 滑块ticket错误 */
+    WrongTicket = 237,
+}
+export interface EventMap extends MergeEventMap{
+    /** 收到二维码 */
+    "system.login.qrcode": (event: { image: Buffer }) => void
+    /** 收到滑动验证码 */
+    "system.login.slider": (event: { url: string }) => void
+    /** 设备锁验证事件 */
+    "system.login.device": (event: { url: string, phone: string }) => void
+    /** 登录遇到错误 */
+    "system.login.error": (event: { code: LoginErrorCode | number, message: string }) => void
+    /** 上线事件 */
+    "system.online": (event: undefined) => void
+
+    /**下线事件（网络原因，默认自动重连） */
+    "system.offline.network": (event: { message: string }) => void
+    /**下线事件（服务器踢） */
+    "system.offline.kickoff": (event: { message: string }) => void
+    "system.offline": (event: { message: string }) => void
+}

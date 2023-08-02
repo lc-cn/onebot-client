@@ -61,47 +61,38 @@ export class Group extends Contactable{
     }
     async getInfo(cache?:boolean){
         if(cache) return this.info
-        return this.info=await this.client.link.callApi<GroupInfo>('get_group_info',{group_id:this.group_id})
-    }
-    setAvatar(file:string){
-        return this.client.link.callApi<GroupHonorInfo>('set_group_portrait',{group_id:this.group_id,file})
-    }
-    getHonorInfo(type:'talkative'|'performer'|'legend'|'strong_newbie'|'emotion'|'all'){
-        return this.client.link.callApi<GroupHonorInfo>('set_group_kick',{group_id:this.group_id,type})
+        return this.info=await this.client.link.callApi('get_group_info',{group_id:this.group_id})
     }
     /** 获取一枚群员实例 */
     pickMember(uid: number) {
         return this.c.pickMember(this.group_id, uid)
     }
     kickMember(member_id:number,reject_add_request?:boolean){
-        return this.client.link.callApi<void>('set_group_kick',{group_id:this.group_id,user_id:member_id,reject_add_request})
+        return this.client.link.callApi('set_group_kick',{group_id:this.group_id,user_id:member_id,reject_add_request})
     }
     muteMember(member_id:number,duration?:number){
-        return this.client.link.callApi<void>('set_group_ban',{group_id:this.group_id,user_id:member_id,duration})
+        return this.client.link.callApi('set_group_ban',{group_id:this.group_id,user_id:member_id,duration})
     }
     muteAnonymous(flag:string,duration?:number){
-        return this.client.link.callApi<void>('set_group_anonymous_ban',{group_id:this.group_id,flag,duration})
+        return this.client.link.callApi('set_group_anonymous_ban',{group_id:this.group_id,flag,duration})
     }
     muteAll(enable?:boolean){
-        return this.client.link.callApi<void>('set_group_whole_ban',{group_id:this.group_id,enable})
+        return this.client.link.callApi('set_group_whole_ban',{group_id:this.group_id,enable})
     }
     setAdmin(member_id:number,enable?:boolean){
-        return this.client.link.callApi<void>('set_group_admin',{group_id:this.group_id,user_id:member_id,enable})
-    }
-    setAnonymous(enable?:boolean){
-        return this.client.link.callApi<void>('set_group_anonymous',{group_id:this.group_id,enable})
+        return this.client.link.callApi('set_group_admin',{group_id:this.group_id,user_id:member_id,enable})
     }
     setMemberCard(member_id:number,card:string){
-        return this.client.link.callApi<void>('set_group_card',{group_id:this.group_id,user_id:member_id,card})
+        return this.client.link.callApi('set_group_card',{group_id:this.group_id,user_id:member_id,card})
     }
     setName(group_name:string){
-        return this.client.link.callApi<void>('set_group_name',{group_id:this.group_id,group_name})
+        return this.client.link.callApi('set_group_name',{group_id:this.group_id,group_name})
     }
     quit(is_dismiss?:boolean){
-        return this.client.link.callApi<void>('set_group_leave',{group_id:this.group_id,is_dismiss})
+        return this.client.link.callApi('set_group_leave',{group_id:this.group_id,is_dismiss})
     }
     setMemberTitle(member_id:number,title:string,duration?:number){
-        return this.client.link.callApi<void>('set_group_special_title',{
+        return this.client.link.callApi('set_group_special_title',{
             group_id:this.group_id,
             user_id:member_id,
             special_title:title,
@@ -109,10 +100,10 @@ export class Group extends Contactable{
         })
     }
     sign(){
-        return this.client.link.callApi<void>('send_group_sign',{group_id:this.group_id})
+        return this.client.link.callApi('send_group_sign',{group_id:this.group_id})
     }
     sendMsg(message:Sendable,quote?:Quotable){
-        return this.c.link.callApi<MessageRet>('send_group_msg',{group_id:this.group_id,message,quote})
+        return this.c.link.callApi('send_group_msg',{group_id:this.group_id,message,source:quote})
     }
     static as(this:Client,group_id:number){
         let groupInfo=this.gl.get(group_id)
@@ -157,7 +148,7 @@ export interface MemberInfo extends UserInfo{
     shutup_time: number
     update_time: number
 }
-// @ts-ignore
+/** @ts-ignore ts(2417) 群员(继承User) */
 export class Member extends User{
     public group:Group
     public group_id:number

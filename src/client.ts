@@ -8,78 +8,58 @@ import {EventMap, MessageRet} from "./event";
 import {Notice} from "./notice";
 import {Request} from "./request";
 import {Profile, StrangerInfo, VersionInfo} from "./common";
-
 export class Client extends EventDeliver{
     link:Link
     readonly gl=new Map<number, GroupInfo>()
     readonly gml=new Map<number, Map<number, MemberInfo>>()
     readonly fl=new Map<number,FriendInfo>()
-    public options:Client.Options/**
-     * 得到一个群对象, 通常不会重复创建，调用
-     * @param strict 严格模式，若群不存在会抛出异常
-     */
-    readonly pickGroup = Group.as.bind(this)
-    /** 得到一个好友对象, 通常不会重复创建 */
-    readonly pickFriend = Friend.as.bind(this)
-    /** 得到一个群员对象, 通常不会重复创建 */
-    readonly pickMember = Member.as.bind(this)
-    /** 创建一个用户对象 */
-    readonly pickUser = User.as.bind(this)
+    public options:Client.Options
+    info?:Client.Self
+    reconnect_times:number=0
     deleteMsg(message_id:string){
         return this.link.callApi('delete_msg',{message_id})
     }
-    getInfo(){
-        return this.link.callApi<{user_id:number,nickname:string}>('get_login_info')
-    }
-    setProfile(profile:Partial<Profile>){
-        return this.link.callApi<void>('set_qq_profile',profile)
-    }
     getStrangerInfo(user_id:number){
-        return this.link.callApi<StrangerInfo>('get_stranger_info',{user_id})
+        return this.link.callApi('get_stranger_info',{user_id})
     }
     getFriendList(){
-        return this.link.callApi<FriendInfo[]>('get_friend_list')
+        return this.link.callApi('get_friend_list')
     }
     getGroupList(){
-        return this.link.callApi<GroupInfo[]>('get_group_list')
+        return this.link.callApi('get_group_list')
     }
     getGroupMemberList(group_id:number){
-        return this.link.callApi<MemberInfo[]>('get_group_member_list',{group_id})
+        return this.link.callApi('get_group_member_list',{group_id})
     }
     getMsg(message_id:string){
-        return this.link.callApi<Omit<Message, 'reply'>>('get_msg',{message_id})
-    }
-    getImage(file:string){
-        return this.link.callApi<{size:number,filename:string,url:string}>('get_image',{file})
-    }
-    getRecord(file:string,out_format:'mp3'|'amr'|'wma'|'m4a'|'spx'|'ogg'|'wav'|'flac'='mp3'){
-        return this.link.callApi<{file:string}>('get_record',{file})
-    }
-    canSendImage(){
-        return this.link.callApi<{yes:boolean}>('can_send_image')
-    }
-    canSendRecord(){
-        return this.link.callApi<{yes:boolean}>('can_send_record')
-    }
-    getVersionInfo(){
-        return this.link.callApi<VersionInfo>('get_version_info')
-    }
-    restartServer(){
-        return this.link.callApi<void>('set_restart')
-    }
-    cleanServerCache(){
-        return this.link.callApi<void>('clean_cache')
+        return this.link.callApi('get_msg',{message_id})
     }
     constructor(public uin:number,options?:Client.Options|string) {
         super();
+        this.pickFriend=Friend.as.bind(this)
+        this.pickGroup=Group.as.bind(this)
+        this.pickMember=Member.as.bind(this)
+        this.pickUser=User.as.bind(this)
         if(!options) options='ws://localhost:8080'
         if(typeof options==="string"){
             options={remote_url:options}
         }
-
-        if(!options.remote_url) throw new Error('remote_utl is required')
+        if(!options.remote_url) throw new Error('remote_url is required')
         this.options=Object.assign({...Client.defaultOptions},options)
-        this.link=new Link(`${this.options.remote_url}?access_token=${this.options.access_token}`)
+        this.link=new Link({
+            endpoint:this.options.remote_url,
+            access_token:this.options.access_token,
+        })
+        this.link.on('close',()=>{
+            if(this.options.max_reconnect_count<this.reconnect_times){
+                setTimeout(()=>{
+                    this.link.connect()
+                },this.options.reconnect_interval)
+            }
+        })
+    }
+    login(password?:string){
+        return this.link.callApi('login',{password})
     }
     async start(){
         this.link.on('data',(data)=>{
@@ -145,35 +125,51 @@ export class Client extends EventDeliver{
                     const {system_type,...system}=data
                     return this.em([post_type,system_type,sub_type]
                         .filter(Boolean)
-                        .join('.'),Message.from.call(this,system_type,system))
+                        .join('.'),{...system,system_type})
             }
         })
-        await this.link.connect()
         await this.#init()
-
     }
     async #init(){
-        const groupList=await this.getGroupList()
-        const friendList=await this.getFriendList()
-        for(const groupInfo of groupList){
-            this.gl.set(groupInfo.group_id,groupInfo)
-            const groupMemberList=await this.getGroupMemberList(groupInfo.group_id)
-            const groupMemberMap=new Map<number,MemberInfo>()
-            for(const memberInfo of groupMemberList){
-                groupMemberMap.set(memberInfo.user_id,memberInfo)
+        await this.link.connect()
+        const status=await this.link.callApi('get_status')
+        return new Promise<void>(async (resolve,reject)=>{
+            const callback=async()=>{
+                const groupList=await this.getGroupList()
+                const friendList=await this.getFriendList()
+                for(const groupInfo of groupList){
+                    this.gl.set(groupInfo.group_id,groupInfo)
+                    const groupMemberList=await this.getGroupMemberList(groupInfo.group_id)
+                    const groupMemberMap=new Map<number,MemberInfo>()
+                    for(const memberInfo of groupMemberList){
+                        groupMemberMap.set(memberInfo.user_id,memberInfo)
+                    }
+                    this.gml.set(groupInfo.group_id,groupMemberMap)
+                }
+                for(const friendInfo of friendList){
+                    this.fl.set(friendInfo.user_id,friendInfo)
+                }
+                console.log(`加载了${this.fl.size}个好友，${this.gl.size}个群`)
             }
-            this.gml.set(groupInfo.group_id,groupMemberMap)
-        }
-        for(const friendInfo of friendList){
-            this.fl.set(friendInfo.user_id,friendInfo)
-        }
-        console.log(`加载了${this.fl.size}个好友，${this.gl.size}个群`)
+            const timer=setTimeout(()=>{
+                reject('初始化超时')
+            },5000)
+            const bot=status.bots.find(bot=>bot.self?.user_id===this.uin+'')
+            if(status.good && bot?.online){
+                this.info=bot.self
+                await callback()
+                clearTimeout(timer)
+                resolve()
+            }else{
+                this.on('system.online',()=>callback())
+            }
+        })
     }
     sendPrivateMsg(user_id:number,message:Sendable,source?:Quotable){
-        return this.link.callApi<MessageRet>('send_private_msg',{user_id,message,source})
+        return this.link.callApi('send_private_msg',{user_id,message,source})
     }
     sendGroupMsg(group_id:number,message:Sendable,source?:Quotable){
-        return this.link.callApi<MessageRet>('send_group_msg',{group_id,message,source})
+        return this.link.callApi('send_group_msg',{group_id,message,source})
     }
     em(name:string,data:any){
         data = Object.defineProperty(data || { }, "self_id", {
@@ -199,9 +195,13 @@ export interface AllEventMap extends EventMap,LifeCycle{
 export interface LifeCycle{
     connect():void
     error(e:Error):void
-    close(e:CloseEvent):void
+    close(e:Error):void
 }
 export interface Client{
+    pickFriend(this:Client,user_id:number,strict?:boolean):Friend
+    pickGroup(this:Client,group_id:number,strict?:boolean):Group
+    pickMember(this:Client,group_id:number,member_id:number,strict?:boolean):Member
+    pickUser(this:Client,user_id:number,strict?:boolean):User
     before<E extends keyof EventMap>(event:E,listener:EventMap[E],prepend?:boolean):EventDeliver.Dispose
     before<S extends EventDeliver.EventName>(event:S & Exclude<S, keyof EventMap>,listener:EventDeliver.Listener,prepend?:boolean):EventDeliver.Dispose
     after<E extends keyof EventMap>(event:E,listener:EventMap[E],prepend?:boolean):EventDeliver.Dispose
@@ -236,6 +236,9 @@ export interface Client{
     bailSync<S extends EventDeliver.EventName>(event:S & Exclude<S, keyof EventMap>,...args:Parameters<EventDeliver.Listener>):Promise<any>
 }
 export namespace Client{
+    export interface Self{
+        user_id:string
+    }
     export interface Options{
         remote_url:string
         access_token?:string

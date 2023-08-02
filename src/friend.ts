@@ -69,17 +69,10 @@ export class Friend extends Contactable{
         return new Friend(this,uid)
     }
     delete(){
-        return this.c.link.callApi<MessageRet>('delete_friend',{friend_id:this.user_id})
-    }
-    uploadFile(file:string,name:string){
-        return this.c.link.callApi<MessageRet>('upload_private_file',{
-            user_id:this.user_id,
-            file,
-            name
-        })
+        return this.c.link.callApi('delete_friend',{friend_id:this.user_id})
     }
     sendMsg(message:Sendable,quote?:Quotable){
-        return this.c.link.callApi<MessageRet>('send_private_msg',{user_id:this.user_id,message,quote})
+        return this.c.link.callApi('send_private_msg',{user_id:this.user_id,message,source:quote})
     }
 }
 export interface Friend{
