@@ -154,9 +154,22 @@ export class Client extends EventDeliver{
             const timer=setTimeout(()=>{
                 reject('初始化超时')
             },5000)
-            const bot=status.bots.find(bot=>bot.self?.user_id===this.uin+'')
+            if('bots' in status){
+                const bot=status.bots.find(bot=>bot.self?.user_id===this.uin+'')
+            }
+            else{
+                const bot=status
+            }
             if(status.good && bot?.online){
-                this.info=bot.self
+                if('self' in bot){
+                    this.info=bot.self
+                }
+                else{
+                    this.info={
+                        "platform": "qq",
+                        "user_id": String(this.uin)
+                    }
+                }
                 await callback()
                 clearTimeout(timer)
                 resolve()
